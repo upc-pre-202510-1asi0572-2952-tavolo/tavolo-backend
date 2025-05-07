@@ -34,7 +34,7 @@ public class UserCommandServiceImpl implements UserCommandService {
     @Override
     public Optional<User> handle(SignUpCommand command) {
         if (userRepository.existsByUsername(command.username()))
-            throw new ResourceAlreadyException("Username already exists");
+            throw new ResourceAlreadyException("User already exists");
         var roles = command.roles();
         if (roles.isEmpty()) {
             var role = roleRepository.findByName(Roles.ROLE_ADMIN);
@@ -42,7 +42,7 @@ public class UserCommandServiceImpl implements UserCommandService {
         }
         roles = command.roles().stream()
                 .map(role -> roleRepository.findByName(role.getName())
-                        .orElseThrow(() -> new ResourceNotFoundException("Role not found"))).toList();
+                        .orElseThrow(() -> new ResourceNotFoundException("Role " + command.roles() + " does not exist"))).toList();
         var user = new User(command.username(), hashingService.encode(command.password()), roles);
         userRepository.save(user);
         return userRepository.findByUsername(command.username());

@@ -7,6 +7,7 @@ import com.tavolo.platform.iam.domain.model.queries.GetUserByUsernameQuery;
 import com.tavolo.platform.iam.domain.services.UserCommandService;
 import com.tavolo.platform.iam.domain.services.UserQueryService;
 import org.apache.logging.log4j.util.Strings;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +21,7 @@ import java.util.List;
  * </p>
  *
  */
+@Service
 public class IamContextFacade {
     private final UserCommandService userCommandService;
     private final UserQueryService userQueryService;
@@ -81,4 +83,9 @@ public class IamContextFacade {
         return result.get().getUsername();
     }
 
+    public boolean existsUser(Long userId) {
+        var getUserByIdQuery = new GetUserByIdQuery(userId);
+        var result = userQueryService.handle(getUserByIdQuery);
+        return result.isPresent();
+    }
 }

@@ -1,4 +1,4 @@
-package com.tavolo.platform.shared.infrastructure.persistense.jpa.configuration.strategy;
+package com.tavolo.platform.shared.infrastructure.persistence.jpa.configuration.strategy;
 
 import org.hibernate.boot.model.naming.Identifier;
 import org.hibernate.boot.model.naming.PhysicalNamingStrategy;
