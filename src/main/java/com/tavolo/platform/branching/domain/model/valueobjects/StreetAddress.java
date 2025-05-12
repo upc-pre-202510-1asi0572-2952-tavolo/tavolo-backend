@@ -1,6 +1,5 @@
 package com.tavolo.platform.branching.domain.model.valueobjects;
 
-import com.tavolo.platform.branching.domain.exceptions.*;
 import com.tavolo.platform.shared.application.exceptions.InvalidValueException;
 import jakarta.persistence.Embeddable;
 import lombok.Getter;
