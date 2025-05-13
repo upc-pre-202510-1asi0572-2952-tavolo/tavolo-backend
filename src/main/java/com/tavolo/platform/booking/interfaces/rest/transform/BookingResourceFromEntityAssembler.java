@@ -1,6 +1,7 @@
 package com.tavolo.platform.booking.interfaces.rest.transform;
 
 import com.tavolo.platform.booking.domain.model.aggregates.Booking;
+import com.tavolo.platform.booking.domain.model.aggregates.Table;
 import com.tavolo.platform.booking.interfaces.rest.resources.BookingResource;
 import com.tavolo.platform.booking.interfaces.rest.resources.BookingSlotResource;
 
@@ -17,9 +18,16 @@ public class BookingResourceFromEntityAssembler {
                         slot.getTimeInterval().startTime().format(TIME_FORMATTER),
                         slot.getTimeInterval().endTime().format(TIME_FORMATTER)))
                 .collect(Collectors.toList());
+
+        // Obtener la tabla y acceder a headquarters correctamente
+        Table table = booking.getTableId();
+        Long headquarterId = table.getHeadquarterId().headquarterId();
+
         return new BookingResource(
                 booking.getId(),
-                booking.getUserId().clientId(),   // assuming UserId has a getValue() method
+                booking.getUserId().clientId(),// assuming UserId has a getValue() method
+                booking.getTableId().getTableDetails().tableNumber().longValue(),
+                headquarterId,
                 booking.getTableId().getId(),       // assuming Table has a getId() method
                 booking.getBookingDate(),
                 slotResources

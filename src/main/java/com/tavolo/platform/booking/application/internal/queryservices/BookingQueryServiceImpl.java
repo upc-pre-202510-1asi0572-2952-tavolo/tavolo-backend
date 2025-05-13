@@ -1,10 +1,13 @@
 package com.tavolo.platform.booking.application.internal.queryservices;
 
 import com.tavolo.platform.booking.domain.model.aggregates.Booking;
+import com.tavolo.platform.booking.domain.model.queries.GetAllBookingsByIdClientQuery;
 import com.tavolo.platform.booking.domain.model.queries.GetAllBookingsQuery;
 import com.tavolo.platform.booking.domain.model.queries.GetBookingByIdQuery;
+import com.tavolo.platform.booking.domain.model.valueobjects.UserId;
 import com.tavolo.platform.booking.domain.services.BookingQueryService;
 import com.tavolo.platform.booking.infrastructure.persistence.jpa.repositories.BookingRepository;
+import com.tavolo.platform.shared.application.exceptions.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -45,9 +48,22 @@ public class BookingQueryServiceImpl implements BookingQueryService {
         List<Booking> bookings = bookingRepository.findAll();
         if(bookings.isEmpty()) {
             LOGGER.warn("No bookings found");
-            throw new RuntimeException("No bookings found");
+            throw new ResourceNotFoundException("No bookings found");
         }
         LOGGER.info("Found {} bookings", bookings.size());
+
+        return bookings;
+    }
+
+    @Override
+    public List<Booking> handle(GetAllBookingsByIdClientQuery query) {
+        LOGGER.info("Fetching all bookings for client ID: {}", query.clientId());
+        List<Booking> bookings = bookingRepository.findAllByUserId(new UserId(query.clientId()));
+        if(bookings.isEmpty()) {
+            LOGGER.warn("No bookings found for client ID: {}", query.clientId());
+            throw new ResourceNotFoundException("No bookings found for client ID: " + query.clientId());
+        }
+        LOGGER.info("Found {} bookings for client ID: {}", bookings.size(), query.clientId());
 
         return bookings;
     }

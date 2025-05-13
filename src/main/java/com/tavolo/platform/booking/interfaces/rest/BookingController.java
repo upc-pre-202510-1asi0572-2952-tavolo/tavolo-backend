@@ -1,6 +1,7 @@
 package com.tavolo.platform.booking.interfaces.rest;
 
 import com.tavolo.platform.booking.domain.model.aggregates.Booking;
+import com.tavolo.platform.booking.domain.model.queries.GetAllBookingsByIdClientQuery;
 import com.tavolo.platform.booking.domain.model.queries.GetAllBookingsQuery;
 import com.tavolo.platform.booking.domain.model.queries.GetBookingByIdQuery;
 import com.tavolo.platform.booking.domain.services.BookingCommandService;
@@ -81,6 +82,20 @@ public class BookingController {
                 .collect(Collectors.toList());
 
         LOGGER.info("Retrieved {} bookings", bookingResources.size());
+        return ResponseEntity.ok(bookingResources);
+    }
+
+    @GetMapping(value = "/client/{clientId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<BookingResource>> getAllBookingsByClientId(@PathVariable Long clientId) {
+        LOGGER.info("Received request to retrieve all bookings for client ID: {}", clientId);
+
+        var query = new GetAllBookingsByIdClientQuery(clientId);
+        List<Booking> bookings = bookingQueryService.handle(query);
+        List<BookingResource> bookingResources = bookings.stream()
+                .map(BookingResourceFromEntityAssembler::toResourceFromEntity)
+                .collect(Collectors.toList());
+
+        LOGGER.info("Retrieved {} bookings for client ID: {}", bookingResources.size(), clientId);
         return ResponseEntity.ok(bookingResources);
     }
 }
