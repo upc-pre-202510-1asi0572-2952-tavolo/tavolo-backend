@@ -25,7 +25,7 @@ public class Role {
 
     public String getStringName() { return name.name(); }
 
-    public static Role getDefaultRole() { return new Role(Roles.ROLE_ADMIN); }
+    public static Role getDefaultRole() { return new Role(Roles.ROLE_USER); }
 
     public static Role toRoleFromName(String name) {
         return new Role(Roles.valueOf(name));
