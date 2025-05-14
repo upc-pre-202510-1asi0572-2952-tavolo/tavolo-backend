@@ -2,6 +2,7 @@ package com.tavolo.platform.booking.application.internal.queryservices;
 
 import com.tavolo.platform.booking.domain.model.aggregates.Table;
 import com.tavolo.platform.booking.domain.model.entities.AvailabilitySlot;
+import com.tavolo.platform.booking.domain.model.queries.GetAllTableByHeadquarterIdQuery;
 import com.tavolo.platform.booking.domain.model.queries.GetAllTablesQuery;
 import com.tavolo.platform.booking.domain.model.queries.GetTableByIdQuery;
 import com.tavolo.platform.booking.domain.model.queries.GetTableScheduleByIdAndDateQuery;
@@ -13,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class TableQueryServiceImpl implements TableQueryService {
@@ -76,6 +78,24 @@ public class TableQueryServiceImpl implements TableQueryService {
         }
 
         return availabilitySlots;
+    }
+
+    @Override
+    public List<Table> handle(GetAllTableByHeadquarterIdQuery query) {
+        LOGGER.info("Searching for tables associated with headquarter ID: {}", query.headquarterId());
+
+        List<Table> allTables = tableRepository.findAll();
+        List<Table> filteredTables = allTables.stream()
+                .filter(table -> table.getHeadquarterId().headquarterId().equals(query.headquarterId()))
+                .collect(Collectors.toList());
+
+        if (filteredTables.isEmpty()) {
+            LOGGER.warn("No tables found for headquarter with ID: {}", query.headquarterId());
+            throw new ResourceNotFoundException("No tables found for headquarter with ID: " + query.headquarterId());
+        }
+
+        LOGGER.info("Found {} tables for headquarter with ID: {}", filteredTables.size(), query.headquarterId());
+        return filteredTables;
     }
 
 }

@@ -1,7 +1,9 @@
 package com.tavolo.platform.branching.apllication.internal.queryservices;
 
+import com.tavolo.platform.booking.domain.model.aggregates.Table;
 import com.tavolo.platform.branching.domain.model.aggregates.Headquarter;
 import com.tavolo.platform.branching.domain.model.queries.GetAllHeadquartersQuery;
+import com.tavolo.platform.booking.domain.model.queries.GetAllTableByHeadquarterIdQuery;
 import com.tavolo.platform.branching.domain.model.queries.GetHeadquarterByIdQuery;
 import com.tavolo.platform.branching.domain.services.HeadquarterQueryService;
 import com.tavolo.platform.branching.infrastructure.persistence.jpa.repositories.HeadquarterRepository;

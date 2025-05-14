@@ -1,5 +1,6 @@
 package com.tavolo.platform.booking.interfaces.rest;
 
+import com.tavolo.platform.booking.domain.model.queries.GetAllTableByHeadquarterIdQuery;
 import com.tavolo.platform.booking.domain.model.queries.GetAllTablesQuery;
 import com.tavolo.platform.booking.domain.model.queries.GetTableByIdQuery;
 import com.tavolo.platform.booking.domain.model.queries.GetTableScheduleByIdAndDateQuery;
@@ -12,6 +13,8 @@ import com.tavolo.platform.booking.interfaces.rest.transform.AvailabilitySlotRes
 import com.tavolo.platform.booking.interfaces.rest.transform.CreateTableCommandFromResourceAssembler;
 import com.tavolo.platform.booking.interfaces.rest.transform.TableResourceFromEntityAssembler;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +27,7 @@ import java.util.List;
 @RequestMapping(value = "/api/v1/tables", produces = MediaType.APPLICATION_JSON_VALUE)
 @Tag(name = "Table", description = "Table Management Endpoints")
 public class TableController {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TableController.class);
     private final TableCommandService tableCommandService;
     private final TableQueryService tableQueryService;
 
@@ -70,5 +74,20 @@ public class TableController {
                 .toResourceListFromEntities(availabilitySlots);
 
         return new ResponseEntity<>(availabilitySlotResources, HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/headquarter/{headquarterId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<TableResource>> getTablesByHeadquarterId(@PathVariable Long headquarterId) {
+        LOGGER.info("Received request to get tables for headquarter with ID: {}", headquarterId);
+
+        var getAllTableByHeadquarterIdQuery = new GetAllTableByHeadquarterIdQuery(headquarterId);
+        var tables = tableQueryService.handle(getAllTableByHeadquarterIdQuery);
+
+        var tableResources = tables.stream()
+                .map(TableResourceFromEntityAssembler::toResourceFromEntity)
+                .toList();
+
+        LOGGER.info("Found {} tables for headquarter ID: {}", tables.size(), headquarterId);
+        return new ResponseEntity<>(tableResources, HttpStatus.OK);
     }
 }
