@@ -1,6 +1,7 @@
 package com.tavolo.platform.booking.interfaces.rest;
 
 import com.tavolo.platform.booking.domain.model.aggregates.Booking;
+import com.tavolo.platform.booking.domain.model.commands.DeleteBookingCommand;
 import com.tavolo.platform.booking.domain.model.queries.GetAllBookingsByIdClientQuery;
 import com.tavolo.platform.booking.domain.model.queries.GetAllBookingsQuery;
 import com.tavolo.platform.booking.domain.model.queries.GetBookingByIdQuery;
@@ -10,6 +11,8 @@ import com.tavolo.platform.booking.interfaces.rest.resources.BookingResource;
 import com.tavolo.platform.booking.interfaces.rest.resources.CreateBookingResource;
 import com.tavolo.platform.booking.interfaces.rest.transform.BookingResourceFromEntityAssembler;
 import com.tavolo.platform.booking.interfaces.rest.transform.CreateBookingCommandFromResourceAssembler;
+import com.tavolo.platform.shared.application.exceptions.ResourceNotFoundException;
+import com.tavolo.platform.shared.interfaces.rest.resources.SuccessMessage;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,5 +100,23 @@ public class BookingController {
 
         LOGGER.info("Retrieved {} bookings for client ID: {}", bookingResources.size(), clientId);
         return ResponseEntity.ok(bookingResources);
+    }
+
+    @DeleteMapping(value = "/{id}")
+    public ResponseEntity<SuccessMessage> deleteBooking(@PathVariable Long id) {
+        LOGGER.info("Received request to delete booking with ID: {}", id);
+
+        try {
+            var command = new DeleteBookingCommand(id);
+            bookingCommandService.handle(command);
+
+            LOGGER.info("Booking with ID: {} successfully deleted", id);
+            return ResponseEntity.ok(new SuccessMessage(HttpStatus.OK.value(),
+                    "Booking with ID: " + id + " successfully deleted"));
+        } catch (ResourceNotFoundException e) {
+            LOGGER.error("Error deleting booking: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new SuccessMessage(HttpStatus.NOT_FOUND.value(), e.getMessage()));
+        }
     }
 }

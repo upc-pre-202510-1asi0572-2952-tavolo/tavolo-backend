@@ -3,6 +3,7 @@ package com.tavolo.platform.booking.application.internal.commandservices;
 import com.tavolo.platform.booking.domain.model.aggregates.Booking;
 import com.tavolo.platform.booking.domain.model.aggregates.Table;
 import com.tavolo.platform.booking.domain.model.commands.CreateBookingCommand;
+import com.tavolo.platform.booking.domain.model.commands.DeleteBookingCommand;
 import com.tavolo.platform.booking.domain.model.entities.AvailabilitySlot;
 import com.tavolo.platform.booking.domain.model.entities.BookingSlot;
 import com.tavolo.platform.booking.domain.model.valueobjects.ScheduleSlotStatus;
@@ -117,4 +118,46 @@ public class BookingCommandServiceImpl implements BookingCommandService {
         LOGGER.info("Booking created successfully with ID: {}", booking.getId());
         return Optional.of(booking);
     }
+
+    @Override
+    @Transactional
+    public void handle(DeleteBookingCommand command) {
+        LOGGER.info("Processing request to delete booking with ID: {}", command.bookingId());
+
+        // Find booking by ID or throw exception if it doesn't exist
+        Booking booking = bookingRepository.findById(command.bookingId())
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found with ID: " + command.bookingId()));
+
+        // Get table with pessimistic lock to prevent concurrent modifications
+        Table table = tableRepository.findByIdWithSlotsForUpdate(booking.getTableId().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Table not found"));
+
+        // Identify availability slots to release
+        List<AvailabilitySlot> slotsToUpdate = table.getAvailabilitySlots().stream()
+                .filter(slot -> slot.getDateOfSlot().equals(booking.getBookingDate()) &&
+                        slot.getStatus() == ScheduleSlotStatus.RESERVED &&
+                        booking.getBookingSlots().stream().anyMatch(bookingSlot ->
+                                bookingSlot.getTimeInterval().equals(slot.getTimeInterval())))
+                .toList();
+
+        // Verify all slots associated with the booking were found
+        if (slotsToUpdate.size() != booking.getBookingSlots().size()) {
+            LOGGER.warn("Not all slots associated with booking ID: {} were found", booking.getId());
+        }
+
+        // Update slots status to AVAILABLE
+        for (AvailabilitySlot slot : slotsToUpdate) {
+            slot.updateStatus(ScheduleSlotStatus.AVAILABLE);
+        }
+
+        // Save table with updated slots
+        tableRepository.save(table);
+
+        // Delete booking
+        bookingRepository.delete(booking);
+
+        LOGGER.info("Booking successfully deleted with ID: {}", command.bookingId());
+    }
+
+
 }
