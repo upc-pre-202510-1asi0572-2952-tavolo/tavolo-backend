@@ -95,7 +95,7 @@ public class WebSecurityConfiguration {
                                 "/swagger-resources/**",
                                 "/webjars/**").permitAll()
                         .requestMatchers("/api/v1/roles/**").hasRole("ADMIN")     // Solo ADMIN puede acceder
-                        .requestMatchers("/api/v1/users/**").hasRole("ADMIN")     // Solo COOK puede acceder
+                        .requestMatchers("/api/v1/user/**").hasAnyRole("SUPERVISOR", "ADMIN") // supervisor y ADMIN pueden acceder
                         //.requestMatchers("/api/v1/user/**").hasAnyRole("USER", "ADMIN") // USER y ADMIN pueden acceder
                         .anyRequest().authenticated()
                 );

@@ -28,4 +28,5 @@ public class TableCommandServiceIntegrationTest {
         Optional<Table> result = tableCommandService.handle(command);
         assertTrue(result.isPresent());  // Verificar que se crea la mesa
     }
-} 
+}
+
