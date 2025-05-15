@@ -4,6 +4,7 @@ import com.tavolo.platform.branching.domain.model.commands.AddSupervisorToHeadqu
 import com.tavolo.platform.branching.domain.model.commands.RemoveSupervisorFromHeadquarterCommand;
 import com.tavolo.platform.branching.domain.model.queries.GetAllHeadquarterSupervisorByIdHeadquarter;
 import com.tavolo.platform.branching.domain.model.queries.GetAllHeadquartersQuery;
+import com.tavolo.platform.branching.domain.model.queries.GetHeadquarterIdBySupervisorId;
 import com.tavolo.platform.branching.domain.model.valueobjects.UserId;
 import com.tavolo.platform.branching.domain.services.HeadquarterSupervisorCommandService;
 import com.tavolo.platform.branching.domain.services.HeadquarterSupervisorQueryService;
@@ -77,6 +78,20 @@ public class HeadquarterSupervisorController {
                     HttpStatus.CREATED
             );
         }).orElse(ResponseEntity.badRequest().build());
+    }
+
+    @GetMapping(value = "/supervisors/{supervisorId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Get headquarter by supervisor ID", description = "Returns the headquarter assigned to a specific supervisor")
+    public ResponseEntity<SupervisorResource> getHeadquarterBySupervisorId(
+            @PathVariable Long supervisorId) {
+        LOGGER.info("Recibida solicitud para obtener sede del supervisor con ID: {}", supervisorId);
+
+        var query = new GetHeadquarterIdBySupervisorId(supervisorId);
+        var headquarter = queryService.handle(query);
+        var supervisorResource = SupervisorResourceFromHeadquarterDataAssembler.toResourceFromEntity(headquarter.get());
+        LOGGER.info("Sede obtenida para el supervisor con ID: {}: {}", supervisorId, headquarter);
+        return ResponseEntity.ok(supervisorResource);
+
     }
 
     @DeleteMapping(value = "/{headquarterId}/supervisors/{supervisorId}", produces = MediaType.APPLICATION_JSON_VALUE)
