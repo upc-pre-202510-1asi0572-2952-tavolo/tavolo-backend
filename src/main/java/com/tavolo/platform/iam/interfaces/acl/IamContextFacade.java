@@ -2,6 +2,7 @@ package com.tavolo.platform.iam.interfaces.acl;
 
 import com.tavolo.platform.iam.domain.model.commands.SignUpCommand;
 import com.tavolo.platform.iam.domain.model.entities.Role;
+import com.tavolo.platform.iam.domain.model.queries.GetRoleUserByUserIdQuery;
 import com.tavolo.platform.iam.domain.model.queries.GetUserByIdQuery;
 import com.tavolo.platform.iam.domain.model.queries.GetUserByUsernameQuery;
 import com.tavolo.platform.iam.domain.services.UserCommandService;
@@ -87,5 +88,16 @@ public class IamContextFacade {
         var getUserByIdQuery = new GetUserByIdQuery(userId);
         var result = userQueryService.handle(getUserByIdQuery);
         return result.isPresent();
+    }
+
+    /**
+     * Obtiene los roles de un usuario por su ID.
+     * @param userId El ID del usuario.
+     * @return Una cadena con los roles del usuario separados por coma, o cadena vacía si el usuario no existe.
+     */
+    public String getUserRolesByUserId(Long userId) {
+        var query = new GetRoleUserByUserIdQuery(userId);
+        var result = userQueryService.handle(query);
+        return result.orElse(Strings.EMPTY);
     }
 }

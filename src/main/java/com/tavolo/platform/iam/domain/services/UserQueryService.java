@@ -2,6 +2,7 @@ package com.tavolo.platform.iam.domain.services;
 
 import com.tavolo.platform.iam.domain.model.aggregates.User;
 import com.tavolo.platform.iam.domain.model.queries.GetAllUsersQuery;
+import com.tavolo.platform.iam.domain.model.queries.GetRoleUserByUserIdQuery;
 import com.tavolo.platform.iam.domain.model.queries.GetUserByIdQuery;
 import com.tavolo.platform.iam.domain.model.queries.GetUserByUsernameQuery;
 
@@ -12,4 +13,5 @@ public interface UserQueryService {
     List<User> handle(GetAllUsersQuery query);
     Optional<User> handle(GetUserByIdQuery query);
     Optional<User> handle(GetUserByUsernameQuery query);
+    Optional<String> handle(GetRoleUserByUserIdQuery query);
 }
