@@ -1,5 +1,6 @@
 package com.tavolo.platform.booking.interfaces.rest;
 
+import com.tavolo.platform.booking.domain.model.commands.DeleteTableCommand;
 import com.tavolo.platform.booking.domain.model.queries.GetAllTableByHeadquarterIdQuery;
 import com.tavolo.platform.booking.domain.model.queries.GetAllTablesQuery;
 import com.tavolo.platform.booking.domain.model.queries.GetTableByIdQuery;
@@ -89,5 +90,15 @@ public class TableController {
 
         LOGGER.info("Found {} tables for headquarter ID: {}", tables.size(), headquarterId);
         return new ResponseEntity<>(tableResources, HttpStatus.OK);
+    }
+    @DeleteMapping(value = "{tableId}")
+    public ResponseEntity<Void> deleteTable(@PathVariable Long tableId) {
+        LOGGER.info("Received request to delete table with ID: {}", tableId);
+
+        var deleteTableCommand = new DeleteTableCommand(tableId);
+        tableCommandService.handle(deleteTableCommand);
+
+        LOGGER.info("Table with ID: {} deleted successfully", tableId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

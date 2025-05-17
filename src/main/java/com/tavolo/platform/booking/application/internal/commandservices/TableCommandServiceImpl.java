@@ -4,6 +4,7 @@ import com.tavolo.platform.booking.application.internal.outboundedservices.acl.E
 import com.tavolo.platform.booking.domain.model.aggregates.Table;
 import com.tavolo.platform.booking.domain.model.commands.CreateTableCommand;
 import com.tavolo.platform.booking.domain.model.commands.CreateTableScheduleCommand;
+import com.tavolo.platform.booking.domain.model.commands.DeleteTableCommand;
 import com.tavolo.platform.booking.domain.model.entities.AvailabilitySlot;
 import com.tavolo.platform.booking.domain.model.events.SingleTableAvailabilitySlotsGeneratedEvent;
 import com.tavolo.platform.booking.domain.model.valueobjects.HeadquarterId;
@@ -159,5 +160,16 @@ public class TableCommandServiceImpl implements TableCommandService {
         tableRepository.save(table);
 
         return Optional.of(table);
+    }
+    @Override
+    public void handle(DeleteTableCommand command) {
+        LOGGER.info("Processing delete table command for table ID: {}", command.tableId());
+
+        var table = tableRepository.findById(command.tableId())
+                .orElseThrow(() -> new ResourceNotFoundException("Table with ID: " + command.tableId() + " not found"));
+
+        LOGGER.debug("Deleting table with ID: {}", command.tableId());
+        tableRepository.delete(table);
+        LOGGER.info("Table with ID: {} deleted successfully", command.tableId());
     }
 }
