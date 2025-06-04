@@ -6,6 +6,8 @@ import com.tavolo.platform.booking.domain.model.queries.GetAllTableByHeadquarter
 import com.tavolo.platform.booking.domain.model.queries.GetAllTablesQuery;
 import com.tavolo.platform.booking.domain.model.queries.GetTableByIdQuery;
 import com.tavolo.platform.booking.domain.model.queries.GetTableScheduleByIdAndDateQuery;
+import com.tavolo.platform.booking.domain.model.valueobjects.HeadquarterId;
+import com.tavolo.platform.booking.domain.model.valueobjects.TableStatus;
 import com.tavolo.platform.booking.domain.services.TableQueryService;
 import com.tavolo.platform.booking.infrastructure.persistence.jpa.repositories.TableRepository;
 import com.tavolo.platform.shared.application.exceptions.ResourceNotFoundException;
@@ -31,6 +33,10 @@ public class TableQueryServiceImpl implements TableQueryService {
         LOGGER.info("Searching for table with ID: {}", query.id());
         return tableRepository.findById(query.id())
                 .map(table -> {
+                    if (table.getStatus() == TableStatus.DELETED) {
+                        LOGGER.warn("Table with ID {} is marked as DELETED", query.id());
+                        throw new ResourceNotFoundException("No table found with ID: " + query.id());
+                    }
                     LOGGER.info("Table found with ID {}: {}", query.id(), table);
                     return table;
                 })
@@ -43,7 +49,9 @@ public class TableQueryServiceImpl implements TableQueryService {
     @Override
     public Set<Table> handle(GetAllTablesQuery query) {
         LOGGER.info("Starting query for all tables");
-        var tables = tableRepository.findAll();
+        var tables = tableRepository.findAll().stream()
+                .filter(table -> table.getStatus() != TableStatus.DELETED)
+                .collect(Collectors.toList());
 
         if (tables.isEmpty()) {
             LOGGER.warn("No tables found in the database");
@@ -83,11 +91,9 @@ public class TableQueryServiceImpl implements TableQueryService {
     @Override
     public List<Table> handle(GetAllTableByHeadquarterIdQuery query) {
         LOGGER.info("Searching for tables associated with headquarter ID: {}", query.headquarterId());
-
-        List<Table> allTables = tableRepository.findAll();
-        List<Table> filteredTables = allTables.stream()
-                .filter(table -> table.getHeadquarterId().headquarterId().equals(query.headquarterId()))
-                .collect(Collectors.toList());
+        
+        var headquarterId = new HeadquarterId(query.headquarterId());
+        List<Table> filteredTables = tableRepository.findByHeadquarterIdAndStatusNot(headquarterId, TableStatus.DELETED);
 
         if (filteredTables.isEmpty()) {
             LOGGER.warn("No tables found for headquarter with ID: {}", query.headquarterId());

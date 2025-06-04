@@ -8,7 +8,8 @@ public class CreateTableCommandFromResourceAssembler {
         return new CreateTableCommand(
                 resource.tableNumber(),
                 resource.seats(),
-                resource.headquarterId()
+                resource.headquarterId(),
+                resource.zone()
         );
     }
 }

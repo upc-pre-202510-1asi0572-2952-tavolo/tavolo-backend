@@ -9,6 +9,8 @@ import com.tavolo.platform.booking.domain.model.entities.AvailabilitySlot;
 import com.tavolo.platform.booking.domain.model.events.SingleTableAvailabilitySlotsGeneratedEvent;
 import com.tavolo.platform.booking.domain.model.valueobjects.HeadquarterId;
 import com.tavolo.platform.booking.domain.model.valueobjects.TableDetails;
+import com.tavolo.platform.booking.domain.model.valueobjects.TableStatus;
+import com.tavolo.platform.booking.domain.model.valueobjects.TableZone;
 import com.tavolo.platform.booking.domain.model.valueobjects.TimeSlot;
 import com.tavolo.platform.booking.domain.services.TableCommandService;
 import com.tavolo.platform.booking.infrastructure.persistence.jpa.repositories.TableRepository;
@@ -50,14 +52,18 @@ public class TableCommandServiceImpl implements TableCommandService {
         }
 
         LOGGER.debug("Checking if table with number: {} already exists in headquarters: {}", command.tableNumber(), command.headquartersId());
-        if(tableRepository.existsByHeadquarterIdAndTableDetails_TableNumber(headquarterId, command.tableNumber())) {
+        if(tableRepository.existsByHeadquarterIdAndTableDetails_TableNumberAndStatusNot(headquarterId, command.tableNumber(), TableStatus.DELETED)) {
             LOGGER.warn("Table with number: {} already exists in headquarters: {}", command.tableNumber(), command.headquartersId());
             throw new ResourceAlreadyException("Table with number: " + command.tableNumber() + " already exists in headquarters: " + command.headquartersId());
         }
 
         LOGGER.info("Creating new table with number: {} in headquarters: {}", command.tableNumber(), command.headquartersId());
         var tableDetails = new TableDetails(command.tableNumber(), command.seats());
-        var table = new Table(tableDetails, headquarterId);
+        
+        // Convertir string a TableZone enum
+        var tableZone = TableZone.fromString(command.zone());
+        // Crear tabla con zona
+        var table = new Table(tableDetails, headquarterId, tableZone);
 
         try {
             LOGGER.debug("Saving table to repository");
@@ -168,8 +174,9 @@ public class TableCommandServiceImpl implements TableCommandService {
         var table = tableRepository.findById(command.tableId())
                 .orElseThrow(() -> new ResourceNotFoundException("Table with ID: " + command.tableId() + " not found"));
 
-        LOGGER.debug("Deleting table with ID: {}", command.tableId());
-        tableRepository.delete(table);
-        LOGGER.info("Table with ID: {} deleted successfully", command.tableId());
+        LOGGER.debug("Marking table with ID: {} as DELETED", command.tableId());
+        table.setStatus(TableStatus.DELETED);
+        tableRepository.save(table);
+        LOGGER.info("Table with ID: {} marked as DELETED successfully", command.tableId());
     }
 }

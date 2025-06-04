@@ -5,6 +5,7 @@ public record TableResource(
         Long headquarterId,
         Integer tableNumber,
         Integer seats,
-        String status
+        String status,
+        String zone
 ) {
 }

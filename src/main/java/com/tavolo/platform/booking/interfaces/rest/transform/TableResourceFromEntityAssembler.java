@@ -10,7 +10,8 @@ public class TableResourceFromEntityAssembler {
                 entity.getHeadquarterId().headquarterId(),
                 entity.getTableDetails().tableNumber(),
                 entity.getTableDetails().seats(),
-                entity.getStatus().toString()
+                entity.getStatus().toString(),
+                entity.getZone().getName()
         );
     }
 }
