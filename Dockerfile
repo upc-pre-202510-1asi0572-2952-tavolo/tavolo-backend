@@ -6,6 +6,5 @@ RUN mvn clean package -Dmaven.test.skip=true
 FROM openjdk:17-jdk-slim
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
-ENV PORT=8080
-EXPOSE 8080
-CMD ["java", "-Dserver.port=${PORT}", "-jar", "app.jar"]
+EXPOSE 10000
+CMD ["sh", "-c", "java -Dserver.port=${PORT:=10000} -jar app.jar"]
